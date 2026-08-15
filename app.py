@@ -5,15 +5,15 @@ import google.generativeai as genai
 st.set_page_config(page_title="AI 블로그 어시스턴트", page_icon="📝")
 st.title("📝 나만의 감성 & 정보 블로그 어시스턴트")
 
-# 2. Gemini 키 입력 (사이드바)
-with st.sidebar:
-    st.header("🔑 API 키 설정")
-    gemini_api_key = st.text_input("Gemini API Key", type="password")
+# 2. 시스템에 영구 저장된 Gemini 키 자동 불러오기
+try:
+    gemini_api_key = st.secrets["GEMINI_API_KEY"]
+except KeyError:
+    gemini_api_key = None
 
-# 3. 핵심 함수 (새로운 프롬프트 적용)
+# 3. 핵심 함수 (프롬프트 실행)
 def generate_blog_draft(keyword, api_key):
     genai.configure(api_key=api_key)
-    # 무료로 가장 안정적인 최신 모델
     model = genai.GenerativeModel('gemini-2.5-flash')
     
     prompt = f"""
@@ -49,7 +49,7 @@ target_keyword = st.text_input("어떤 장소나 주제로 글을 쓰실 건가�
 
 if st.button("🚀 블로그 초안 생성하기", use_container_width=True):
     if not gemini_api_key:
-        st.error("Gemini API 키를 먼저 입력해 주세요.")
+        st.error("설정(Secrets)에 등록된 API 키가 없습니다. Streamlit Secrets 설정을 확인해 주세요.")
     elif not target_keyword:
         st.warning("주제를 입력해 주세요.")
     else:
