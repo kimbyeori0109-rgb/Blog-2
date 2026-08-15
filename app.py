@@ -10,10 +10,11 @@ with st.sidebar:
     st.header("🔑 API 키 설정")
     gemini_api_key = st.text_input("Gemini API Key", type="password")
 
-# 3. 핵심 함수 (Google Gemini 사용)
+# 3. 핵심 함수 (Google Gemini 최신 모델 사용)
 def generate_blog_draft(keyword, api_key):
     genai.configure(api_key=api_key)
-    model = genai.GenerativeModel('gemini-1.5-flash')
+    # 구글의 최신 무료 모델로 이름 변경 (1.5 -> 3.5)
+    model = genai.GenerativeModel('gemini-3.5-flash')
     
     prompt = f"""
     당신은 세계여행, 국내여행, 맛집 전문 인플루언서입니다.
