@@ -1,16 +1,18 @@
 import streamlit as st
-import google.generativeai as genai
+from openai import OpenAI
 
 # 1. UI 설정
 st.set_page_config(page_title="AI 프로페셔널 여행 콘텐츠 에디터", page_icon="✈️", layout="centered")
 st.title("✈️ 프로페셔널 여행 콘텐츠 에디터")
 st.markdown("여행의 기억을 가감 없이 입력해 주시면, 신뢰감 있는 고품질 블로그 글과 인스타 캡션, 해시태그를 완성해 드립니다.")
 
-# 2. 시스템에 영구 저장된 Gemini 키 자동 불러오기
+# 2. 시스템에 영구 저장된 OpenAI 키 자동 불러오기
 try:
-    gemini_api_key = st.secrets["GEMINI_API_KEY"]
+    openai_api_key = st.secrets["OPENAI_API_KEY"]
+    client = OpenAI(api_key=openai_api_key)
 except KeyError:
-    gemini_api_key = None
+    openai_api_key = None
+    client = None
 
 # 3. 상단 탭 생성 (여행 전체 / 호텔 / 관광지 / 맛집 / 이동수단)
 tab1, tab2, tab3, tab4, tab5 = st.tabs([
@@ -46,8 +48,8 @@ with tab1:
     if st.button("🚀 여행 전체 블로그 초안 생성하기", use_container_width=True, key="btn_t1"):
         if not destination:
             st.warning("최소한 '여행지'는 입력해 주세요!")
-        elif not gemini_api_key:
-            st.error("Streamlit Secrets에 Gemini API 키가 설정되어 있지 않습니다.")
+        elif not openai_api_key:
+            st.error("Streamlit Secrets에 OPENAI_API_KEY가 설정되어 있지 않습니다.")
         else:
             data = {
                 "destination": destination, "travel_period": travel_period or "정보 없음",
@@ -108,11 +110,12 @@ with tab1:
             """
             with st.spinner("에디터가 여행 전체 후기를 작성 중입니다... ✍️"):
                 try:
-                    genai.configure(api_key=gemini_api_key)
-                    model = genai.GenerativeModel('gemini-3.7-flash')
-                    res = model.generate_content(prompt)
+                    res = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": prompt}]
+                    )
                     st.markdown("---")
-                    st.markdown(res.text)
+                    st.markdown(res.choices[0].message.content)
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
 
@@ -136,8 +139,8 @@ with tab2:
     if st.button("🚀 호텔 리뷰 초안 생성하기", use_container_width=True, key="btn_t2"):
         if not h_name:
             st.warning("최소한 '호텔 이름 및 위치'는 입력해 주세요!")
-        elif not gemini_api_key:
-            st.error("Streamlit Secrets에 Gemini API 키가 설정되어 있지 않습니다.")
+        elif not openai_api_key:
+            st.error("Streamlit Secrets에 OPENAI_API_KEY가 설정되어 있지 않습니다.")
         else:
             h_data = {
                 "name": h_name, "room": h_room or "정보 없음", "price": h_price or "정보 없음",
@@ -187,11 +190,12 @@ with tab2:
             """
             with st.spinner("에디터가 호텔 리뷰를 작성 중입니다... 🏨"):
                 try:
-                    genai.configure(api_key=gemini_api_key)
-                    model = genai.GenerativeModel('gemini-3.7-flash')
-                    res = model.generate_content(h_prompt)
+                    res = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": h_prompt}]
+                    )
                     st.markdown("---")
-                    st.markdown(res.text)
+                    st.markdown(res.choices[0].message.content)
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
 
@@ -215,8 +219,8 @@ with tab3:
     if st.button("🚀 관광지 리뷰 초안 생성하기", use_container_width=True, key="btn_t3"):
         if not p_name:
             st.warning("최소한 '관광지 이름 및 위치'는 입력해 주세요!")
-        elif not gemini_api_key:
-            st.error("Streamlit Secrets에 Gemini API 키가 설정되어 있지 않습니다.")
+        elif not openai_api_key:
+            st.error("Streamlit Secrets에 OPENAI_API_KEY가 설정되어 있지 않습니다.")
         else:
             p_data = {
                 "name": p_name, "time": p_time or "정보 없음", "cost": p_cost or "정보 없음",
@@ -266,11 +270,12 @@ with tab3:
             """
             with st.spinner("에디터가 관광지 리뷰를 작성 중입니다... 🗺️"):
                 try:
-                    genai.configure(api_key=gemini_api_key)
-                    model = genai.GenerativeModel('gemini-3.7-flash')
-                    res = model.generate_content(p_prompt)
+                    res = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": p_prompt}]
+                    )
                     st.markdown("---")
-                    st.markdown(res.text)
+                    st.markdown(res.choices[0].message.content)
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
 
@@ -294,8 +299,8 @@ with tab4:
     if st.button("🚀 맛집 리뷰 초안 생성하기", use_container_width=True, key="btn_t4"):
         if not r_name:
             st.warning("최소한 '식당 이름 및 위치'는 입력해 주세요!")
-        elif not gemini_api_key:
-            st.error("Streamlit Secrets에 Gemini API 키가 설정되어 있지 않습니다.")
+        elif not openai_api_key:
+            st.error("Streamlit Secrets에 OPENAI_API_KEY가 설정되어 있지 않습니다.")
         else:
             r_data = {
                 "name": r_name, "menu": r_menu or "정보 없음", "price": r_price or "정보 없음",
@@ -345,11 +350,12 @@ with tab4:
             """
             with st.spinner("에디터가 맛집 리뷰를 작성 중입니다... 🍽️"):
                 try:
-                    genai.configure(api_key=gemini_api_key)
-                    model = genai.GenerativeModel('gemini-3.7-flash')
-                    res = model.generate_content(r_prompt)
+                    res = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": r_prompt}]
+                    )
                     st.markdown("---")
-                    st.markdown(res.text)
+                    st.markdown(res.choices[0].message.content)
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
 
@@ -373,8 +379,8 @@ with tab5:
     if st.button("🚀 이동수단 리뷰 초안 생성하기", use_container_width=True, key="btn_t5"):
         if not v_name:
             st.warning("최소한 '이동수단 종류 및 구간'은 입력해 주세요!")
-        elif not gemini_api_key:
-            st.error("Streamlit Secrets에 Gemini API 키가 설정되어 있지 않습니다.")
+        elif not openai_api_key:
+            st.error("Streamlit Secrets에 OPENAI_API_KEY가 설정되어 있지 않습니다.")
         else:
             v_data = {
                 "name": v_name, "time": v_time or "정보 없음", "price": v_price or "정보 없음",
@@ -424,10 +430,11 @@ with tab5:
             """
             with st.spinner("에디터가 이동수단 리뷰를 작성 중입니다... 🚆"):
                 try:
-                    genai.configure(api_key=gemini_api_key)
-                    model = genai.GenerativeModel('gemini-3.7-flash')
-                    res = model.generate_content(v_prompt)
+                    res = client.chat.completions.create(
+                        model="gpt-4o-mini",
+                        messages=[{"role": "user", "content": v_prompt}]
+                    )
                     st.markdown("---")
-                    st.markdown(res.text)
+                    st.markdown(res.choices[0].message.content)
                 except Exception as e:
                     st.error(f"오류가 발생했습니다: {e}")
